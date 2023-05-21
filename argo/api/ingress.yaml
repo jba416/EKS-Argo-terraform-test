@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: api
+  name: api
+  namespace: marfeelns
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/subnets: subnet-7ca63372, subnet-8f9d4ee9
+    alb.ingress.kubernetes.io/target-type: ip
+    kubernetes.io/ingress.class: alb
+spec:
+  rules:
+    - http:
+        paths:
+          
+          - path: /api
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+                  name: http
+            pathType: Prefix 
