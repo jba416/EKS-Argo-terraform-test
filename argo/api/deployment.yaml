@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: marfeelns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+      containers:
+      - name: api
+        image: gcr.io/google_containers/echoserver:1.4
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 80
+
+

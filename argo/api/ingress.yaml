@@ -2,9 +2,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   labels:
-    app: aperture-nginx-sso
-  name: aperture-nginx-sso
-  namespace: data-aperture
+    app: api
+  name: api
+  namespace: marfeelns
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/subnets: subnet-7ca63372, subnet-8f9d4ee9
@@ -15,10 +15,10 @@ spec:
     - http:
         paths:
           
-          - path: /*
+          - path: /api
             backend:
               service:
-                name: nginx-test
+                name: api-service
                 port:
                   number: 80
                   name: http
