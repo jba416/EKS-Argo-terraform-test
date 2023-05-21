@@ -11,19 +11,15 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     kubernetes.io/ingress.class: alb
 spec:
-  #tls:
-  #  - hosts:
-  #      - '*.dev-k8s-###domain###.cision.com'
-  #    secretName: dev-k8s-###domain###-cert
   rules:
-  - host: "aperture.dev-ssvcs-usa-gke.int.cision.com"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: aperture-nginx-sso
-            port:
-              number: 80              
-  ingressClassName: nginx-internal
+    - http:
+        paths:
+          
+          - path: /*
+            backend:
+              service:
+                name: nginx-test
+                port:
+                  number: 80
+                  name: http
+            pathType: Prefix 
