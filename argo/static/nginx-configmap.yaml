@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+  namespace: data-aperture
+data:
+  nginx.conf: |
+    # Based on https://www.nginx.com/resources/wiki/start/topics/examples/full/#nginx-conf
+
+    #user              www www;  ## Default: nobody
+
+
+    worker_processes  auto;
+
+    error_log         "/opt/bitnami/nginx/logs/error.log";
+
+    pid               "/opt/bitnami/nginx/tmp/nginx.pid";
+
+
+    events {
+        worker_connections  1024;
+    }
+
+
+    http {
+        #include        /opt/bitnami/nginx/conf/mime.types;
+        default_type  application/octet-stream;
+        log_format    main '$remote_addr - $remote_user [$time_local] '
+                          '"$request" $status  $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+        access_log    "/opt/bitnami/nginx/logs/access.log" main;
+        #add_header    X-Frame-Options SAMEORIGIN;
+        keepalive_timeout  120;
+
+        sendfile           on;
+        proxy_max_temp_file_size 0;
+        
+        
+        include  "/opt/bitnami/nginx/conf/server_blocks/*.conf";
+
+        # HTTP Server
+        server {
+          listen 0.0.0.0:8080;
+          #server_name sso-vouch.dev-ssvcs-usa-gke.int.cision.com;
+          root /app;
+          index welcomepage.html;
+
+          #ssl_certificate /etc/letsencrypt/live/avocado.lol/fullchain.pem;
+          #ssl_certificate_key /etc/letsencrypt/live/avocado.lol/privkey.pem;
+          
+        auth_request /validate;
+        # Any request to this server will first be sent to this URL
+        location = /validate {
+          #  This address is where Vouch will be listening on
+          proxy_pass https://vouch-app.dev-ssvcs-usa-gke.int.cision.com/validate;
+          proxy_pass_request_body off; # no need to send the POST body
+          #proxy_set_header Host $http_host;
+          proxy_set_header Content-Length "";
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          # optionally add X-Vouch-User as returned by Vouch Proxy along with the request
+          auth_request_set $auth_resp_x_vouch_user $upstream_http_x_vouch_user;
+
+          # these return values are passed to the @error401 call
+          auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
+          auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
+          auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
+        }
+
+        error_page 401 = @error401;
+
+        # If the user is not logged in, redirect them to Vouch's login URL
+        location @error401 {
+          return 302 https://vouch-app.dev-usa-gke.int.cision.com/validate/login?url=$scheme:http://$http_host$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err;
+        }
+        location /elasticsearch-outreach {
+          proxy_pass https://elasticsearch-outreach.dev-usa-gke.int.cision.com/;
+          proxy_set_header X-Forwarded-Proto https;
+        }
+
+        location /es5-dev {
+          proxy_pass http://es5-dev-main.aws.trendkite.com:9200/;
+          proxy_set_header proxy_ssl_server_name off;
+        }
+
+        location /espercolate-dev {
+          proxy_pass http://espercolate-dev-main.aws.trendkite.com:9200/;
+          proxy_set_header proxy_ssl_server_name off;
+        }
+
+        location /esupgrade-dev {
+          proxy_pass http://esupgrade-dev-main.aws.trendkite.com:9200/;
+          proxy_set_header proxy_ssl_server_name off;
+        }
+
+        location /prnasia-web-dev {
+          proxy_pass http://139.198.21.183:9200/;
+          proxy_set_header proxy_ssl_server_name off;
+        }
+
+        location / {
+          }
+        }
+        
+        
+      }         
