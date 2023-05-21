@@ -24,7 +24,7 @@ spec:
         configMap:
           name: welcomepage
           items:
-            - key: welcomepage.html
+            - key: welcomepage.html 
               path: welcomepage.html
       containers:
       - name: nginx-test
