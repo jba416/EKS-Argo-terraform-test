@@ -1,0 +1,69 @@
+
+#  Test with applications
+projects: 
+- name: app-dev
+  namespace: argocd
+  additionalLabels: {}
+  additionalAnnotations: {}
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  description: dev-Project
+  sourceRepos:
+  - https://github.com/jba416/argo.git
+  destinations:
+  - namespace: app-test
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist: 
+  - group: '*'
+    kind: '*'    
+  clusterResourceBlacklist: []
+  # namespaceResourceBlacklist:
+  # - group: ''
+  #   kind: ResourceQuota
+  # - group: ''
+  #   kind: LimitRange
+  # - group: ''
+  #   kind: NetworkPolicy
+  #   orphanedResources: {}
+  #   roles: []
+  namespaceResourceWhitelist:
+
+  - group: '*'
+    kind: '*'
+  orphanedResources: {}
+  roles: []
+  #syncWindows: []
+  # - kind: allow
+  #   schedule: '10 1 * * *'
+  #   duration: 1h
+  #   applications:
+  #   - '*-prod'
+    # manualSync: true
+  #signatureKeys:
+  #- keyID: ABCDEF1234567890
+  sourceNamespaces:
+  - argocd
+applications: 
+- name: test-static
+  namespace: argocd
+  additionalLabels: {}
+  additionalAnnotations: {}
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  project: app-dev
+  source:
+    repoURL: https://github.com/jba416/argo.git
+    targetRevision: dev
+    path: static
+    directory:
+      recurse: false
+      targetRevision: dev
+  destination:
+     server: https://kubernetes.default.svc
+     namespace: app-test
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false
+  revisionHistoryLimit: null
+

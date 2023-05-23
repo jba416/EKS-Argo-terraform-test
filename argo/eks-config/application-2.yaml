@@ -1,0 +1,27 @@
+
+#  Test with applications
+
+applications: 
+- name: app-api
+  namespace: argocd
+  additionalLabels: {}
+  additionalAnnotations: {}
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  project: app-dev
+  source:
+    repoURL: https://github.com/jba416/argo.git
+    targetRevision: HEAD
+    path: api
+    directory:
+      recurse: false
+      targetRevision: HEAD
+  destination:
+     server: https://kubernetes.default.svc
+     namespace: app-test
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false
+  revisionHistoryLimit: null
+
